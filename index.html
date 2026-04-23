@@ -1,1 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lillian's Special Question</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Pacifico&display=swap');
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; background:#000; font-family:'Nunito', sans-serif; }
+#vid-wrap { position:fixed; inset:0; z-index:0; }
+#bg-video { width:100%; height:100%; object-fit:cover; object-position:center center; }
+#mk-top { position:absolute; top:0; left:0; right:0; height:8%; background:linear-gradient(to bottom,#000 30%,transparent); z-index:1; }
+#mk-bottom { position:absolute; bottom:0; left:0; right:0; height:12%; background:linear-gradient(to top,#000 30%,transparent); z-index:1; }
+#mk-left { position:absolute; top:0; left:0; bottom:0; width:4%; background:linear-gradient(to right,#000 20%,transparent); z-index:1; }
+#mk-right { position:absolute; top:0; right:0; bottom:0; width:4%; background:linear-gradient(to left,#000 20%,transparent); z-index:1; }
+#vig { position:fixed; inset:0; z-index:2; pointer-events:none; background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,.55) 100%); }
+/* Tap gate */
+#tap-gate {
+  position:fixed; inset:0; z-index:20;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:#000; cursor:pointer; -webkit-tap-highlight-color:transparent;
+  gap:18px;
+}
+#tap-gate .gate-emoji { font-size:clamp(60px,15vw,90px); animation:bounce 1.4s ease-in-out infinite; }
+#tap-gate p {
+  font-family:'Nunito',sans-serif; font-weight:900;
+  font-size:clamp(22px,5.5vw,36px);
+  letter-spacing:.08em; color:rgba(255,255,255,.9);
+  text-transform:uppercase; pointer-events:none;
+  animation:tapPulse 2s ease-in-out infinite;
+}
+@keyframes tapPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+/* Final overlay */
+#overlay {
+  position:fixed; inset:0; z-index:10;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:28px 22px;
+  pointer-events:none; opacity:0; transition:opacity 1.6s ease;
+  background:rgba(0,0,0,.55);
+}
+#overlay.visible { opacity:1; pointer-events:auto; }
+#overlay.visible .ov-emoji  { animation:popIn .6s .1s ease both; }
+#overlay.visible .ov-name   { animation:rise  1.0s .4s ease both; }
+#overlay.visible .ov-big    { animation:rise  1.0s .8s ease both; }
+#overlay.visible .ov-role   { animation:rise  1.0s 1.2s ease both; }
+#overlay.visible .ov-sub    { animation:rise  .9s  1.6s ease both; }
+#overlay.visible #accept-btn{ animation:popIn .8s  2.2s ease both; }
+#overlay.visible .btn-note  { animation:rise  .7s  2.8s ease both; }
+.ov-emoji { font-size:clamp(48px,12vw,80px); opacity:0; display:block; margin-bottom:6px; }
+.ov-name {
+  font-family:'Pacifico',cursive;
+  font-size:clamp(38px,10vw,72px);
+  color:#fff;
+  letter-spacing:.02em;
+  line-height:1.1;
+  display:block; opacity:0;
+  text-shadow:0 3px 30px rgba(0,0,0,1), 0 0 60px rgba(0,0,0,.9);
+}
+.ov-big {
+  font-family:'Nunito',sans-serif; font-weight:900;
+  font-size:clamp(20px,5vw,34px);
+  color:rgba(255,255,255,.95);
+  letter-spacing:.04em;
+  line-height:1.7;
+  margin-top:14px; opacity:0;
+  text-shadow:0 2px 20px rgba(0,0,0,1);
+}
+.ov-role {
+  font-family:'Pacifico',cursive;
+  font-size:clamp(28px,7vw,52px);
+  color:#FFD700;
+  letter-spacing:.04em;
+  display:block; margin-top:10px; opacity:0;
+  text-shadow:0 3px 24px rgba(0,0,0,1), 0 0 40px rgba(255,180,0,.4);
+}
+.ov-sub {
+  font-family:'Nunito',sans-serif; font-weight:700;
+  font-size:clamp(14px,3vw,20px);
+  color:rgba(255,255,255,.7);
+  letter-spacing:.06em;
+  margin-top:8px; opacity:0;
+}
+#accept-btn {
+  display:inline-block; margin-top:28px;
+  padding:18px 52px;
+  background:rgba(255,215,0,.18);
+  border:2px solid rgba(255,215,0,.8);
+  color:#FFD700;
+  font-family:'Nunito',sans-serif; font-weight:900;
+  font-size:clamp(18px,4.5vw,28px);
+  letter-spacing:.12em;
+  text-transform:uppercase; text-decoration:none;
+  cursor:pointer; opacity:0;
+  border-radius:60px;
+  transition:background .3s, transform .15s;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+#accept-btn:active { background:rgba(255,215,0,.35); transform:scale(.97); }
+.btn-note {
+  display:block;
+  font-family:'Nunito',sans-serif; font-weight:700;
+  font-size:clamp(11px,2.2vw,15px);
+  letter-spacing:.2em; color:rgba(255,255,255,.55);
+  text-transform:uppercase; margin-top:12px;
+  pointer-events:none; opacity:0;
+}
+@keyframes rise    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn   { 0%{opacity:0;transform:scale(.7)} 70%{transform:scale(1.08)} 100%{opacity:1;transform:scale(1)} }
+</style>
+</head>
+<body>
 
+<div id="tap-gate">
+  <span class="gate-emoji">🌸</span>
+  <p>Tap to Watch!</p>
+</div>
+
+<div id="vid-wrap">
+  <video id="bg-video" muted playsinline preload="auto">
+    <source src="videoplayback.mp4" type="video/mp4">
+  </video>
+  <div id="mk-top"></div>
+  <div id="mk-bottom"></div>
+  <div id="mk-left"></div>
+  <div id="mk-right"></div>
+</div>
+
+<div id="vig"></div>
+
+<div id="overlay">
+  <span class="ov-emoji">🌸✨🌸</span>
+  <span class="ov-name">Lillian!</span>
+  <p class="ov-big">
+    Will you be our<br>
+  </p>
+  <span class="ov-role">Flower Girl?</span>
+  <p class="ov-sub">Julie &amp; Tyler are asking you! 💛</p>
+  <a id="accept-btn" href="#">YES! 🌺</a>
+  <span class="btn-note">Tap to say yes!</span>
+</div>
+
+<script>
+  var JULIE_PHONE = "16232174811";
+  var smsBody = encodeURIComponent("Lillian said YES! She will be your Flower Girl! 🌸");
+  document.getElementById('accept-btn').href = 'sms:+' + JULIE_PHONE + '&body=' + smsBody;
+
+  var vid       = document.getElementById('bg-video');
+  var gate      = document.getElementById('tap-gate');
+  var overlay   = document.getElementById('overlay');
+  var acceptBtn = document.getElementById('accept-btn');
+
+  function startExperience() {
+    var vPlay = vid.play();
+    if (vPlay) vPlay.catch(function(){});
+    gate.style.display = 'none';
+  }
+  gate.addEventListener('click',      startExperience, { once: true });
+  gate.addEventListener('touchstart', startExperience, { once: true, passive: true });
+
+  vid.addEventListener('ended', function() {
+    vid.currentTime = vid.duration;
+    vid.pause();
+    overlay.classList.add('visible');
+  });
+</script>
+</body>
+</html>
